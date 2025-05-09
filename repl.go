@@ -20,7 +20,12 @@ func startRepl() {
 		//
 		commandName := words[0]
 		//
-		fmt.Printf("Your command was: %s\n", commandName)
+		// fmt.Printf("Your command was: %s\n", commandName)
+		if thing, ok := supportedCommands[commandName]; ok {
+			thing.callback()
+		} else {
+			fmt.Println("Unknown command")
+		}
 	}
 }
 
