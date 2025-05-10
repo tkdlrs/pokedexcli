@@ -21,8 +21,14 @@ func startRepl() {
 		commandName := words[0]
 		//
 		command, exists := getCommands()[commandName]
+		//
+		configurations := config{
+			Next:     "https://pokeapi.co/api/v2/location-area",
+			Previous: " ",
+		}
+
 		if exists {
-			err := command.callback()
+			err := command.callback(&configurations)
 			if err != nil {
 				fmt.Println(err)
 			}
@@ -43,7 +49,7 @@ func cleanInput(text string) []string {
 type cliCommand struct {
 	name        string
 	description string
-	callback    func() error
+	callback    func(*config) error
 }
 
 func getCommands() map[string]cliCommand {
@@ -58,5 +64,20 @@ func getCommands() map[string]cliCommand {
 			description: "Displays a help message",
 			callback:    commandHelp,
 		},
+		"map": {
+			name:        "map",
+			description: "Displays the next 20 location areas from the PokeAPI",
+			callback:    commandMap,
+		},
+		"mapb": {
+			name:        "mapb",
+			description: "Displays the previous 20 location areas from the PokeAPI",
+			callback:    commandMapB,
+		},
 	}
+}
+
+type config struct {
+	Next     string
+	Previous string
 }
