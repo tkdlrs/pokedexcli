@@ -8,6 +8,12 @@ import (
 )
 
 func startRepl() {
+	//
+	configurations := config{
+		Next:     "",
+		Previous: "",
+	}
+	//
 	reader := bufio.NewScanner(os.Stdin)
 	for {
 		fmt.Print("Pokedex > ")
@@ -21,17 +27,15 @@ func startRepl() {
 		commandName := words[0]
 		//
 		command, exists := getCommands()[commandName]
-		//
-		configurations := config{
-			Next:     "https://pokeapi.co/api/v2/location-area",
-			Previous: " ",
-		}
-
 		if exists {
 			err := command.callback(&configurations)
 			if err != nil {
 				fmt.Println(err)
 			}
+			//
+			// fmt.Println(configurations.Next, "configurations.Next")
+			// fmt.Println(configurations.Previous, "configurations.Previous")
+			//
 			continue
 		} else {
 			fmt.Println("Unknown command")
