@@ -1,93 +1,43 @@
 package main
 
 import (
-	"encoding/json"
+	"errors"
 	"fmt"
-	"net/http"
-	"strings"
 )
 
-func (c *config) setNext(nextUrl string) {
-	c.Next = nextUrl
-}
-func (c *config) setPrevious(previousUrl string) {
-	c.Previous = previousUrl
-}
-
-// for the things that both map commands have in common.
-func mapCommandCommon(resourceURL string, currentConfig *config) error {
-	// GET some information
-	res, err := http.Get(resourceURL)
+func commandMapf(cfg *config) error {
+	locationsResp, err := cfg.pokeapiClient.ListLocations(cfg.nextLocationsURL)
 	if err != nil {
-		return fmt.Errorf("ERROR is: %w", err)
+		return err
 	}
-	defer res.Body.Close()
 	//
-	var locationAreas LocationAreas
-	translateData := json.NewDecoder(res.Body)
-	if err := translateData.Decode(&locationAreas); err != nil {
-		return fmt.Errorf("ERROR is: %w", err)
-	}
-	// Update the currentConfig so it'll be accurate.
-	currentConfig.setNext(locationAreas.Next)
-	currentConfig.setPrevious(locationAreas.Previous)
+	cfg.nextLocationsURL = locationsResp.Next
+	cfg.prevLocationsURL = locationsResp.Previous
 	//
-	allResults := []string{}
-	for result := range locationAreas.Results {
-		// fmt.Println(result, "is a result")
-		// fmt.Println(locationAreas.Results[result].Name, "locationAreas.Results[result].Name")
-		allResults = append(allResults, locationAreas.Results[result].Name)
+	for _, loc := range locationsResp.Results {
+		fmt.Println(loc.Name)
 	}
-
-	// fmt.Println("locationAreas", locationAreas)
-	for _, aResult := range allResults {
-		fmt.Println(aResult)
-	}
-	return nil
-}
-
-func commandMap(currentConfig *config) error {
-	// Reseting / keeping the currentConfig accurate.
-	// fmt.Println(currentConfig.Next, "currentConfig.Next")
-	// fmt.Println(strings.Contains(currentConfig.Next, "location-area"), "does it have 'location-area'? ")
 	//
-	if !strings.Contains(currentConfig.Next, "location-area") {
-		currentConfig.setNext("https://pokeapi.co/api/v2/location-area")
-		currentConfig.setPrevious("")
-	}
-	// fmt.Println(currentConfig.Next, "currentConfig.Next")
-	//
-	err := mapCommandCommon(currentConfig.Next, currentConfig)
-	if err != nil {
-		return fmt.Errorf("ERROR: %w", err)
-	}
 	return nil
 
 }
 
-func commandMapB(currentConfig *config) error {
-	if currentConfig.Previous != "" {
-		currentConfig.setNext(currentConfig.Previous)
-	}
-	if currentConfig.Previous == "" {
-		fmt.Println("you're on the first page")
-		currentConfig.setNext("https://pokeapi.co/api/v2/location-area")
-		return nil
+func commandMapb(cfg *config) error {
+	if cfg.prevLocationsURL == nil {
+		return errors.New("you're on the first page")
 	}
 	//
-	err := mapCommandCommon(currentConfig.Next, currentConfig)
+	locationsResp, err := cfg.pokeapiClient.ListLocations(cfg.prevLocationsURL)
 	if err != nil {
-		return fmt.Errorf("ERROR: %w", err)
+		return err
 	}
+	//
+	cfg.nextLocationsURL = locationsResp.Next
+	cfg.prevLocationsURL = locationsResp.Previous
+	//
+	for _, loc := range locationsResp.Results {
+		fmt.Println(loc.Name)
+	}
+	//
 	return nil
-}
-
-type LocationAreas struct {
-	Count    int    `json:"count"`
-	Next     string `json:"next"`
-	Previous string `json:"previous"`
-	Results  []struct {
-		Name string `json:"name"`
-		URL  string `json:"url"`
-	} `json:"results"`
 }
