@@ -1,26 +1,25 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 )
 
-func commandExplore(cfg *config, explorableArea string) error {
-	fmt.Println("Exploring " + explorableArea + "...")
+func commandExplore(cfg *config, args ...string) error {
+	if len(args) != 1 {
+		return errors.New("you must provide a location name")
+	}
 	//
-	deepLocationResp, err := cfg.pokeapiClient.ListPokemonInLocation(explorableArea)
+	name := args[0]
+	location, err := cfg.pokeapiClient.GetLocation(name)
 	if err != nil {
 		return err
 	}
-	// fmt.Println(deepLocationResp)
-	// filter out the un-necessary information
-	pokemons := []string{}
-	for _, encounters := range deepLocationResp.PokemonEncounters {
-		pokemons = append(pokemons, encounters.Pokemon.Name)
-	}
 	//
-	fmt.Println("Found Pokemon:")
-	for _, name := range pokemons {
-		fmt.Printf(" - %v\n", name)
+	fmt.Printf("Exploring %s...\n", location.Name)
+	fmt.Println("Found Pokemon: ")
+	for _, enc := range location.PokemonEncounters {
+		fmt.Printf(" - %s\n", enc.Pokemon.Name)
 	}
 	//
 	return nil
