@@ -25,6 +25,8 @@ func commandCatch(cfg *config, args ...string) error {
 		return nil
 	} else {
 		fmt.Printf("%s was caught!\n", name)
+		// keep a list of caught pokemon
+		cfg.capturedPokemon[name] = pokemon
 		return nil
 	}
 }

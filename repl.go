@@ -13,9 +13,11 @@ type config struct {
 	pokeapiClient    pokeapi.Client
 	nextLocationsURL *string
 	prevLocationsURL *string
+	capturedPokemon  map[string]pokeapi.Pokemon
 }
 
 func startRepl(cfg *config) {
+	cfg.capturedPokemon = make(map[string]pokeapi.Pokemon)
 	reader := bufio.NewScanner(os.Stdin)
 	for {
 		fmt.Print("Pokedex > ")
@@ -38,6 +40,7 @@ func startRepl(cfg *config) {
 			if err != nil {
 				fmt.Println(err)
 			}
+			// fmt.Println("Captured pokemon include: ", cfg.capturedPokemon)
 			continue
 		} else {
 			fmt.Println("Unknown command")
